@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -60,32 +61,29 @@ namespace YNAB_Converter
 
                 var ynabLine = new YnabLine
                 {
-                    Date = Convert.ToDateTime(columns[(int) Columns.Valuta]),
-                    Payee = columns[(int) Columns.Auftraggeber],
-                    Memo = columns[(int) Columns.Verwendungszweck],
+                    Date = Convert.ToDateTime(columns[(int)Columns.Valuta]),
+                    Payee = columns[(int)Columns.Auftraggeber],
+                    Memo = columns[(int)Columns.Verwendungszweck],
                 };
 
 
                 if (inflow)
                 {
-                    ynabLine.Category = "Inflow: To be Budgeted";
+                    ynabLine.Category = Config("InflowCategory");
                     ynabLine.Inflow = amount;
                 }
                 else
                 {
-
                     ynabLine.Outflow = amount;
 
-                    if (ynabLine.Payee.Contains("SEQR"))
+                    if (ynabLine.Payee.Contains("Kickstarter"))
                     {
-                        ynabLine.Category = "SEQR";
-                    }else if (ynabLine.Payee.Contains("Kickstarter"))
-                    {
-                        ynabLine.Category = "Just for Fun: Kickstarter";
+                        ynabLine.Category = Config("KickstarterCategory");
                     }
                 }
 
-               
+
+
 
                 ynab.Lines.Add(ynabLine);
 
@@ -94,6 +92,11 @@ namespace YNAB_Converter
             ynab.Save();
 
 
+        }
+
+        public static string Config(string configId)
+        {
+            return ConfigurationManager.AppSettings[configId];
         }
     }
 }
