@@ -7,16 +7,16 @@ using System.Threading.Tasks;
 
 namespace YNAB_Converter
 {
-    class YNABFile
+    internal class YnabFile
     {
-        public List<YNABLine> Lines;
+        public List<YnabLine> Lines;
 
         public string OutputPath { get; }
 
-        public YNABFile(string outputPath)
+        public YnabFile(string outputPath)
         {
             OutputPath = outputPath;
-            Lines = new List<YNABLine>();
+            Lines = new List<YnabLine>();
         }
 
         public void Save()
@@ -37,8 +37,7 @@ namespace YNAB_Converter
 
         internal string Header()
         {
-            return $@"{nameof(YNABLine.Date)},{nameof(YNABLine.Payee)},{nameof(YNABLine.Category)},{nameof(YNABLine.Memo)},{nameof(YNABLine.Outflow)},{nameof(YNABLine.Inflow)}";
-
+            return $@"{nameof(YnabLine.Date)},{nameof(YnabLine.Payee)},{nameof(YnabLine.Category)},{nameof(YnabLine.Memo)},{nameof(YnabLine.Outflow)},{nameof(YnabLine.Outflow)}";
         }
     }
 }

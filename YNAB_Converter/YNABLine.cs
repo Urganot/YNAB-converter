@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace YNAB_Converter
 {
-    class YNABLine
+    internal class YnabLine
     {
         public DateTime Date;
 
@@ -30,15 +31,28 @@ namespace YNAB_Converter
             set => _memo = value;
         }
 
-        public double Outflow;
-        public double Inflow;
+        public double Outflow
+        {
+            get => Math.Abs(_outflow);
+            set => _outflow = value;
+        }
+
+        public double Inflow
+        {
+            get => Math.Abs(_inflow);
+            set => _inflow = value;
+        }
+
+        private double _outflow;
+        private double _inflow;
         private string _payee;
         private string _memo;
         private string _category;
 
-        public YNABLine()
+        public YnabLine()
         {
             _payee = _memo = _category = "";
+            _outflow = _inflow = 0;
         }
 
         public string AsText()
