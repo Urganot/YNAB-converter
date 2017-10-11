@@ -37,7 +37,7 @@ namespace YNAB_Converter
 
         internal string Header()
         {
-            return $@"{nameof(YnabLine.Date)},{nameof(YnabLine.Payee)},{nameof(YnabLine.Category)},{nameof(YnabLine.Memo)},{nameof(YnabLine.Outflow)},{nameof(YnabLine.Outflow)}";
+            return $@"{nameof(YnabLine.Date)},{nameof(YnabLine.Payee)},{nameof(YnabLine.Category)},{nameof(YnabLine.Memo)},{nameof(YnabLine.Outflow)},{nameof(YnabLine.Inflow)}";
         }
     }
 }
