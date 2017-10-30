@@ -11,7 +11,6 @@ namespace YNAB_Converter
 {
     internal class YnabLine
     {
-        public DateTime Date;
 
         public string Payee
         {
@@ -43,11 +42,18 @@ namespace YNAB_Converter
             set => _inflow = value;
         }
 
+        public DateTime Date
+        {
+            get { return _date; }
+            set { _date = value; }
+        }
+
         private double _outflow;
         private double _inflow;
         private string _payee;
         private string _memo;
         private string _category;
+        private DateTime _date;
 
         public YnabLine()
         {
@@ -59,7 +65,7 @@ namespace YNAB_Converter
         {
             var nfi = new NumberFormatInfo { NumberDecimalSeparator = "." };
 
-            return $@"{Date},{Payee},{Category},{Memo},{Outflow.ToString(nfi)},{Inflow.ToString(nfi)}";
+            return $@"{Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)},{Payee},{Category},{Memo},{Outflow.ToString(nfi)},{Inflow.ToString(nfi)}";
         }
 
         private static string Escape(string text)
