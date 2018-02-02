@@ -11,7 +11,9 @@ namespace YNAB_Converter
 {
     class Program
     {
-
+        /// <summary>
+        /// Enum to call columns by name
+        /// </summary>
         public enum Columns
         {
             Buchung = 0,
@@ -29,35 +31,62 @@ namespace YNAB_Converter
 
         static void Main(string[] args)
         {
-            var filePath = args[0];
-            var outPath = args.Length == 2 ? args[1] : Path.GetDirectoryName(filePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(filePath) + "_YNAB" + Path.GetExtension(filePath);
+            if (args.Length < 1 || args.Length > 2)
+                ShowHelp();
 
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException();
+            var inputFilePath = args[0];
 
+            ErrorHandling(inputFilePath);
 
-            var ynab = new YnabFile(outPath);
+            var ynab = new YnabFile(GetOutPath(args, inputFilePath));
 
-            var filestream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            var file = new StreamReader(filestream);
+            using (var filestream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                using (var file = new StreamReader(filestream))
+                {
+                    ParseLines(ynab, file);
+                }
+            }
+
+            ynab.Save();
+        }
+
+        /// <summary>
+        /// Handles errors
+        /// </summary>
+        /// <param name="inputFilePath"></param>
+        private static void ErrorHandling(string inputFilePath)
+        {
+            if (Path.GetExtension(inputFilePath) != ".csv")
+                throw new ArgumentException("Inputfile is not a csv file.");
+
+            if (!File.Exists(inputFilePath))
+                throw new FileNotFoundException("InputFile could not be found.");
+        }
+
+        /// <summary>
+        /// Shows help text 
+        /// </summary>
+        private static void ShowHelp()
+        {
+            Console.WriteLine("Parameter: InputFile [OutputFile]");
+            Console.WriteLine("InputFile:\tPath to the file that should be converted.");
+            Console.WriteLine("OutputFile:\tPath to the output file. If not specified a path will be determined.");
+        }
+
+        private static void ParseLines(YnabFile ynab, StreamReader file)
+        {
             string line;
-
 
             while ((line = file.ReadLine()) != null)
             {
-
-
                 var columns = line.Split(';').ToList();
 
-
-                if (columns.Count < 9)
+                if (columns.Count != 9)
                     continue;
 
                 if (!double.TryParse(columns[(int)Columns.Betrag], out double amount))
                     continue;
-
-
-                var inflow = amount > 0;
 
                 var ynabLine = new YnabLine
                 {
@@ -66,35 +95,33 @@ namespace YNAB_Converter
                     Memo = columns[(int)Columns.Verwendungszweck],
                 };
 
-
-                if (inflow)
-                {
-                    ynabLine.Category = Config("InflowCategory");
+                if (amount > 0)
                     ynabLine.Inflow = amount;
-                }
                 else
-                {
                     ynabLine.Outflow = amount;
-
-                    if (ynabLine.Payee.Contains("Kickstarter"))
-                    {
-                        ynabLine.Category = Config("KickstarterCategory");
-                    }
-                }
-
-
-
-
+                
                 ynab.Lines.Add(ynabLine);
-
             }
-
-            ynab.Save();
-
-
         }
 
-        public static string Config(string configId)
+        /// <summary>
+        /// Returns output path
+        /// If specified in input args, returns this output path else determines output path
+        /// </summary>
+        /// <param name="args">Startup args</param>
+        /// <param name="inputFilePath">Pth to the input file</param>
+        /// <returns>Output path</returns>
+        private static string GetOutPath(string[] args, string inputFilePath)
+        {
+            return args.Length == 2 ? args[1] : Path.GetDirectoryName(inputFilePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(inputFilePath) + "_YNAB" + Path.GetExtension(inputFilePath);
+        }
+
+        /// <summary>
+        /// Get config Value
+        /// </summary>
+        /// <param name="configId">Specifies which config value should be returned</param>
+        /// <returns>Specified config value</returns>
+        public static string GetConfigValue(string configId)
         {
             return ConfigurationManager.AppSettings[configId];
         }
