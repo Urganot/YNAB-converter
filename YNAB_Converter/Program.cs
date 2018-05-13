@@ -21,9 +21,9 @@ namespace YNAB_Converter
             Auftraggeber = 2,
             Buchungstext = 3,
             Verwendungszweck = 4,
-            Betrag = 5,
+            Betrag = 7,
             WährungBetrag = 6,
-            Saldo = 7,
+            Saldo = 5,
             WährungSaldo = 8
         }
 
