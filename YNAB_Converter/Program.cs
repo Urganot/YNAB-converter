@@ -12,23 +12,9 @@ namespace YNAB_Converter
     class Program
     {
         /// <summary>
-        /// Enum to call columns by name
+        /// 
         /// </summary>
-        public enum Columns
-        {
-            Buchung = 0,
-            Valuta = 1,
-            Auftraggeber = 2,
-            Buchungstext = 3,
-            Verwendungszweck = 4,
-            Betrag = 7,
-            WährungBetrag = 6,
-            Saldo = 5,
-            WährungSaldo = 8
-        }
-
-
-
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             if (args.Length < 1 || args.Length > 2)
@@ -38,16 +24,17 @@ namespace YNAB_Converter
 
             ErrorHandling(inputFilePath);
 
+            var bank = Banks.Get(GetConfigValue("BankIdentifier"));
+
             var ynab = new YnabFile(GetOutPath(args, inputFilePath));
 
             using (var filestream = new FileStream(inputFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 using (var file = new StreamReader(filestream))
                 {
-                    ParseLines(ynab, file);
+                    ynab.Lines = bank.ParseLines(file);
                 }
             }
-
             ynab.Save();
         }
 
@@ -69,40 +56,11 @@ namespace YNAB_Converter
         /// </summary>
         private static void ShowHelp()
         {
-            Console.WriteLine("Parameter: InputFile [OutputFile]");
+            Console.WriteLine("Parameter: InputFile [BankIdentifier] [OutputFile]");
             Console.WriteLine("InputFile:\tPath to the file that should be converted.");
             Console.WriteLine("OutputFile:\tPath to the output file. If not specified a path will be determined.");
         }
 
-        private static void ParseLines(YnabFile ynab, StreamReader file)
-        {
-            string line;
-
-            while ((line = file.ReadLine()) != null)
-            {
-                var columns = line.Split(';').ToList();
-
-                if (columns.Count != 9)
-                    continue;
-
-                if (!double.TryParse(columns[(int)Columns.Betrag], out double amount))
-                    continue;
-
-                var ynabLine = new YnabLine
-                {
-                    Date = Convert.ToDateTime(columns[(int)Columns.Valuta]),
-                    Payee = columns[(int)Columns.Auftraggeber],
-                    Memo = columns[(int)Columns.Verwendungszweck],
-                };
-
-                if (amount > 0)
-                    ynabLine.Inflow = amount;
-                else
-                    ynabLine.Outflow = amount;
-                
-                ynab.Lines.Add(ynabLine);
-            }
-        }
 
         /// <summary>
         /// Returns output path
